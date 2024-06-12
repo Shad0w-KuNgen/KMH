@@ -7,10 +7,8 @@
 
 #define ARC_PATH_MAX 256
 
-extern struct mm_struct *get_task_mm(struct task_struct *task);
-extern void mmput(struct mm_struct *);
-
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 61))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 83))
+#include <linux/sched/mm.h> //mmput, get_task_mm
 #endif
 
 uintptr_t get_module_base(pid_t pid, char *name)

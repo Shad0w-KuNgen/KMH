@@ -10,12 +10,13 @@
 #include <asm/io.h>
 #include <asm/page.h>
 #include <asm/pgtable.h>
+#include "phy_mem_auto_offset.h"
 
-extern struct mm_struct *get_task_mm(struct task_struct *task);
-extern void mmput(struct mm_struct *);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 83))
+#include <linux/sched/mm.h> //mmput, get_task_mm
+#endif
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 61))
-
 phys_addr_t translate_linear_address(struct mm_struct *mm, uintptr_t va)
 {
 
@@ -109,12 +110,12 @@ phys_addr_t translate_linear_address(struct mm_struct *mm, uintptr_t va)
 }
 #endif
 
-#ifndef ARCH_HAS_VALID_PHYS_ADDR_RANGE
-static inline int valid_phys_addr_range(phys_addr_t addr, size_t count)
-{
-	return addr + count <= __pa(high_memory);
+static inline int check_phys_addr_valid_range(phys_addr_t addr, size_t count) {
+    if (g_phy_total_memory_size == 0) {
+        init_phy_total_memory_size();
+    }
+    return (addr + count) <= g_phy_total_memory_size;
 }
-#endif
 
 bool read_physical_address(phys_addr_t pa, void *buffer, size_t size)
 {
@@ -124,7 +125,7 @@ bool read_physical_address(phys_addr_t pa, void *buffer, size_t size)
 	{
 		return false;
 	}
-	if (!valid_phys_addr_range(pa, size))
+	if (!check_phys_addr_valid_range(pa, size))
 	{
 		return false;
 	}
@@ -150,7 +151,7 @@ bool write_physical_address(phys_addr_t pa, void *buffer, size_t size)
 	{
 		return false;
 	}
-	if (!valid_phys_addr_range(pa, size))
+	if (!check_phys_addr_valid_range(pa, size))
 	{
 		return false;
 	}
