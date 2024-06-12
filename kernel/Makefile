@@ -1,3 +1,5 @@
-obj-m += memory.o
-obj-m += process.o
-obj-m += entry.o
+obj-m := khack.o
+
+khack-objs += memory.o
+khack-objs += process.o
+khack-objs += entry.o
